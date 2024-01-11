@@ -1,0 +1,113 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Launch file",
+      "type": "python",
+      "request": "launch",
+      "program": "/opt/ros/rolling/bin/ros2",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "launch",
+        "${input:package}",
+        "${input:program}"
+      ]
+    },
+    {
+      "name": "Debug python executable",
+      "type": "python",
+      "request": "launch",
+      "program": "install/rqt_joint_trajectory_controller/lib/rqt_joint_trajectory_controller/rqt_joint_trajectory_controller",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+    },
+    // gdb launch of a ros executable
+    {
+      "name": "(gdb) Launch Node",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/install/${input:package}/lib/${input:package}/${input:program}",
+      "args": [],
+      "preLaunchTask": "build",
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "C++ Debugger Attach",
+      "request": "launch",
+      "type": "cppdbg",
+      "miDebuggerServerAddress": "localhost:3001",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/install/${input:package}/lib/${input:package}/${input:program}",
+    },
+  ],
+  "inputs": [
+    {
+      "id": "package",
+      "type": "promptString",
+      "description": "Package name",
+      "default": "epsilon_crane_controller"
+    },
+    {
+      "id": "program",
+      "type": "promptString",
+      "description": "Program name",
+      "default": "controller_node"
+    },
+    {
+      "id": "plot",
+      "type": "pickString",
+      "description": "Plot signals?",
+      "options": [
+        "True",
+        "False",
+      ],
+      "default": "False"
+    },
+    {
+      "id": "rviz",
+      "type": "pickString",
+      "description": "Launch rviz?",
+      "options": [
+        "True",
+        "False",
+      ],
+      "default": "False"
+    },
+    {
+      "id": "perception",
+      "type": "pickString",
+      "description": "Use perception kit (and start rviz)?",
+      "options": [
+        "True",
+        "False",
+      ],
+      "default": "False"
+    },
+    {
+      "id": "initialPose",
+      "type": "pickString",
+      "description": "Initial pose? 1. Horizontal, 2. Outside, 3. Truckbed, 4. Transport",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+      ],
+      "default": "1"
+    }
+  ]
+}

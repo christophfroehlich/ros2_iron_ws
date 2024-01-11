@@ -1,0 +1,137 @@
+# This is an auto generated Dockerfile for ros2:source
+# generated from docker_images_ros2/source/create_ros_image.Dockerfile.em
+
+ARG FROM_IMAGE=ros:iron
+FROM $FROM_IMAGE
+
+RUN \
+  # set -x for debug output
+  set -x && \
+  apt-get update -y -qq && \
+  : "install ROS dependencies" && \
+  apt-get -y install --no-install-recommends \
+  clang-format \
+  python3-pygraphviz \
+  python3-rospkg \
+  libdw-dev \ 
+  libelf-dev \ 
+  python3-pip \
+  npm \
+  ros-iron-ackermann-msgs \
+  ros-iron-ament-cmake-google-benchmark \
+  ros-iron-angles \
+  ros-iron-backward-ros\
+  ros-iron-camera-info-manager \
+  ros-iron-diagnostic-updater \
+  ros-iron-filters \
+  ros-iron-gazebo-ros \
+  ros-iron-joint-state-publisher-gui \
+  ros-iron-plotjuggler-msgs \
+  ros-iron-plotjuggler-ros \
+  ros-iron-python-qt-binding \
+  ros-iron-realtime-tools \ 
+  ros-iron-rqt-gui \
+  ros-iron-rqt-gui-py \
+  ros-iron-rqt-publisher \
+  ros-iron-rqt-reconfigure \
+  ros-iron-rqt-service-caller \
+  ros-iron-rqt-srv \
+  ros-iron-rqt-action \
+  ros-iron-rviz2 \
+  ros-iron-test-msgs \
+  ros-iron-xacro \
+  # the following ones are held back by apt and have to be explicitly set, why?
+  ros-iron-rcl ros-iron-rclcpp ros-iron-rmw \
+  ros-iron-rmw-fastrtps-cpp ros-iron-rmw-fastrtps-shared-cpp \
+  ros-iron-rosidl-generator-c ros-iron-rosidl-generator-cpp \
+  ros-iron-rosidl-typesupport-cpp ros-iron-tracetools \
+  # for generate_parameter_library
+  python3-jinja2 \
+  ros-iron-tcb-span \
+  ros-iron-tl-expected \
+  ros-iron-rsl \
+  && \
+  : "remove cache" && \
+  apt-get autoremove -y -qq && \
+  apt-get clean -y && \
+  rm -rf /var/lib/apt/lists/*
+
+# github CLI
+RUN \
+  type -p curl >/dev/null || sudo apt install curl -y && \
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+  && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+  && sudo apt update \
+  && sudo apt install gh -y \ 
+  # install git extension 
+  && npm install -g git-removed-branches
+
+# This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
+# property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
+# will be updated to match your local UID/GID (when using the dockerFile property).
+# See https://aka.ms/vscode-remote/containers/non-root-user for details.
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Options for common package install script - SHA generated on release
+ARG INSTALL_ZSH="false"
+ARG UPGRADE_PACKAGES="true"
+ARG COMMON_SCRIPT_SOURCE="https://raw.githubusercontent.com/microsoft/vscode-dev-containers/v0.245.2/script-library/common-debian.sh"
+ARG COMMON_SCRIPT_SHA="d570f548f2f8df9563010492290ffda6105ed4026f452cdb506df8c0ce65acae"
+
+# Configure apt and install packages
+RUN apt-get update \
+  && export DEBIAN_FRONTEND=noninteractive \
+  #
+  # Verify git, common tools / libs installed, add/modify non-root user, optionally install zsh
+  && apt-get -y install --no-install-recommends curl ca-certificates 2>&1 \
+  && curl -sSL  ${COMMON_SCRIPT_SOURCE} -o /tmp/common-debian.sh \
+  && ([ "${COMMON_SCRIPT_SHA}" = "dev-mode" ] || (echo "${COMMON_SCRIPT_SHA} /tmp/common-debian.sh" | sha256sum -c -)) \
+  && /bin/bash /tmp/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+  && rm /tmp/common-debian.sh \
+  && apt-get -y install --no-install-recommends build-essential gdb gdbserver cmake aptitude udev can-utils python3-pyqtgraph 2>&1 \
+  #
+  # Clean ups
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# install stuff for control.ros.org and generate_parameter_library
+RUN \
+  apt-get update -y -qq \
+  && apt-get -y install --no-install-recommends doxygen graphviz python3-yaml python3-typeguard python3-jinja2 \
+  # Clean ups
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# pre-commit + pytest (proper version, otherwise we get 6.2.5)
+RUN pip3 install pre-commit && pip install -U pytest
+
+# install colcon mixins
+# https://github.com/colcon/colcon-mixin-repository/
+# https://askubuntu.com/a/470636
+RUN \
+  : "install colcon mixins" \
+  && apt-get update -y -qq \
+  && apt-get -y install --no-install-recommends ccache lld \ 
+  && /usr/sbin/update-ccache-symlinks \
+  && echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a "/home/${USERNAME}/.bashrc" \
+  # Clean ups
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# Switch back to dialog for any ad-hoc use of apt-get
+ENV DEBIAN_FRONTEND=dialog
+
+RUN echo "source /opt/ros/iron/setup.bash" >> "/home/${USERNAME}/.bashrc" \
+  && echo "source /usr/share/gazebo/setup.sh" >> "/home/${USERNAME}/.bashrc"  \
+  && echo "export AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS=true" >> "/home/${USERNAME}/.bashrc" \
+  && usermod -aG 104 ${USERNAME} \
+  && usermod -aG video ${USERNAME} \
+  && usermod -aG dialout ${USERNAME} \
+  && usermod -aG kvm ${USERNAME} # joystick
+

@@ -1,5 +1,5 @@
 {
-  "name": "ROS2 Development WS",
+  "name": "ROS2 Development WS Iron",
   "dockerFile": "Dockerfile.vscode",
   "build": { //docker build arguments
     "args": {}
@@ -61,8 +61,6 @@
     "DISPLAY=${env:DISPLAY}",
     "-e",
     "QT_X11_NO_MITSHM=1",
-    "-e",
-    "XDG_RUNTIME_DIR=${env:XDG_RUNTIME_DIR}",
     "--net",
     "host",
     //"-v", ".:/workspace:cached",

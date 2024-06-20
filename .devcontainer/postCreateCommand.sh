@@ -2,7 +2,6 @@
 source /opt/ros/iron/setup.bash
 sudo apt-get update
 rosdep update --rosdistro $ROS_DISTRO
-source /opt/ros/iron/setup.bash
 set -xeu
 vcs import src < ros_control.repos
 # install stuff for control.ros.org
@@ -18,6 +17,9 @@ rosdep install -riy --from-paths src
 # install pre-commit hooks
 (cd src/ros2_controllers && pre-commit install)
 (cd src/ros2_control && pre-commit install)
+(cd src/gz_ros2_control && pre-commit install)
+(cd src/realtime_tools && pre-commit install)
+(cd src/gazebo_ros2_control && pre-commit install)
 (cd src/ros2_control_demos && pre-commit install)
 (cd src/control_toolbox && pre-commit install)
 (cd src/control_msgs && pre-commit install)
